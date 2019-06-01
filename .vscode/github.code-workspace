@@ -1,22 +1,25 @@
 {
 	"extensions": {
-			"recommendations": [
-				"CoenraadS.bracket-pair-colorizer-2",
-				"DotJoshJohnson.xml",
-				"Equinusocio.vsc-material-theme",
-				"ms-vscode.notepadplusplus-keybindings",
-				"PeterJausovec.vscode-docker",
-				"redhat.vscode-yaml",
-				"richie5um2.vscode-sort-json",
-				"secanis.jenkinsfile-support",
-				"Shan.code-settings-sync",
-				"slevesque.vscode-autohotkey",
-				"xabikos.JavaScriptSnippets"
-			]
+		"recommendations": [
+			"CoenraadS.bracket-pair-colorizer-2",
+			"DotJoshJohnson.xml",
+			"Equinusocio.vsc-material-theme",
+			"ms-vscode.notepadplusplus-keybindings",
+			"PeterJausovec.vscode-docker",
+			"redhat.vscode-yaml",
+			"richie5um2.vscode-sort-json",
+			"secanis.jenkinsfile-support",
+			"Shan.code-settings-sync",
+			"slevesque.vscode-autohotkey",
+			"xabikos.JavaScriptSnippets"
+		]
 	},
 	"folders": [
 		{
 			"path": "../.."
+		},
+		{
+			"path": "../../../../Desktop"
 		}
 	],
 	"settings": {
@@ -82,18 +85,19 @@
 		"extensions.showRecommendationsOnlyOnDemand": true,
 		"files.associations": {
 			"**/*.conf": "shellscript",
-			"**/pam_duo.conf": "ini",
 			"**/*.nginx": "shellscript",
 			"**/*.preset": "powershell",
 			"**/*.svg": "html",
 			"**/*.xaml": "html",
 			"**/Jenkinsfile": "groovy",
-			"**/cloud-infrastructure/{etc,usr}/**/*": "shellscript"
+			"**/cloud-infrastructure/{etc,usr}/**/*": "shellscript",
+			"**/pam_duo.conf": "ini"
 		},
 		"files.eol": "\n",
 		"files.exclude": {
-			"**/{node_modules,*.lnk}": true,
-			"**/{boneal_vault,CodingVault,SmartThingsPublic}": true
+			"**/{boneal_vault,CodingVault,SmartThingsPublic}": true,
+			"**/{desktop.ini,node_modules,*.lnk,*.url}": true,
+			"**/~$*.{xls,xlsx,doc,docx}":true
 		},
 		"files.watcherExclude": {
 			"**/.*": true
@@ -120,13 +124,14 @@
 		"scm.diffDecorations": "none",
 		"search.collapseResults": "alwaysCollapse",
 		"search.exclude": {
-			"**/{node_modules,*.lnk}": true,
-			"**/{boneal_vault,CodingVault,SmartThingsPublic}": true
+			"**/{boneal_vault,CodingVault,SmartThingsPublic}": true,
+			"**/{desktop.ini,node_modules,*.lnk,*.url}": true,
+			"**/~$*.{xls,xlsx,doc,docx}":true
 		},
 		"search.quickOpen.includeHistory": false,
 		"search.quickOpen.includeSymbols": false,
 		"search.showLineNumbers": true,
-		"search.smartCase": true,
+		"search.smartCase": false,
 		"search.useGlobalIgnoreFiles": false,
 		"search.useIgnoreFiles": false,
 		"search.usePCRE2": true,
@@ -141,6 +146,7 @@
 		"terminal.integrated.cursorBlinking": true,
 		"typescript.format.insertSpaceAfterConstructor": true,
 		"typescript.format.placeOpenBraceOnNewLineForFunctions": true,
+		"typescript.tsc.autoDetect": "off",
 		"window.closeWhenEmpty": true,
 		"window.zoomLevel": 0,
 		"workbench.colorTheme": "Default Dark+",
