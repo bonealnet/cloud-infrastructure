@@ -5,7 +5,6 @@
 			"DotJoshJohnson.xml",
 			"Equinusocio.vsc-material-theme",
 			"ms-vscode.notepadplusplus-keybindings",
-			"PeterJausovec.vscode-docker",
 			"redhat.vscode-yaml",
 			"richie5um2.vscode-sort-json",
 			"secanis.jenkinsfile-support",
@@ -16,14 +15,24 @@
 	},
 	"folders": [
 		{
+			"name": "github",
 			"path": "../.."
 		},
 		{
+			"name": "desktop"
 			"path": "../../../../Desktop"
 		},
 		{
-			"name": "~/man   (cavalol)",
+			"name": "man.nuc8g",
 			"path": "../../../../AppData/Local/Packages/CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc/LocalState/rootfs/home/cavalol/man/"
+		},
+		{
+			"name": "man.x120hr",
+			"path": "../../../../AppData/Local/Packages/CanonicalGroupLimited.Ubuntu18.04onWindows_79rhkp1fndgsc/LocalState/rootfs/home/mcavallo/man/"
+		},
+		{
+			"name": "workspace-conf",
+			"path": "../../../../Documents/GitHub/cloud-infrastructure/.vscode/"
 		}
 	],
 	"settings": {
@@ -94,13 +103,14 @@
 			"**/*.svg": "html",
 			"**/*.xaml": "html",
 			"**/Jenkinsfile": "groovy",
-			"**/cloud-infrastructure*/{etc,usr}/**/*": "shellscript",
+			"**/cloud-infrastructure/**/*": "shellscript",
 			"**/pam_duo.conf": "ini"
 		},
 		"files.eol": "\n",
 		"files.exclude": {
 			"**/{boneal_vault,CodingVault}": true,
 			"**/{desktop.ini,node_modules,*.lnk,*.url}": true,
+			"**/*.{ico,jpeg,jpg,png}": true,
 			"**/~$*.{xls,xlsx,doc,docx}": true
 		},
 		"files.watcherExclude": {
@@ -132,6 +142,7 @@
 		"search.exclude": {
 			"**/{boneal_vault,CodingVault}": true,
 			"**/{desktop.ini,node_modules,*.lnk,*.url}": true,
+			"**/*.{ico,jpeg,jpg,png}": true,
 			"**/~$*.{xls,xlsx,doc,docx}": true
 		},
 		"search.quickOpen.includeHistory": false,
