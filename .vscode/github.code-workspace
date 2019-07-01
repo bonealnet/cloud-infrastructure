@@ -15,24 +15,22 @@
 	},
 	"folders": [
 		{
-			"name": "github",
+			"name": "GitHub",
 			"path": "../.."
 		},
 		{
-			"name": "desktop"
+			"name": "Desktop"
 			"path": "../../../../Desktop"
 		},
 		{
-			"name": "man.nuc8g",
-			"path": "../../../../AppData/Local/Packages/CanonicalGroupLimited.UbuntuonWindows_79rhkp1fndgsc/LocalState/rootfs/home/cavalol/man/"
-		},
-		{
-			"name": "man.x120hr",
-			"path": "../../../../AppData/Local/Packages/CanonicalGroupLimited.Ubuntu18.04onWindows_79rhkp1fndgsc/LocalState/rootfs/home/mcavallo/man/"
-		},
-		{
-			"name": "workspace-conf",
+			"name": ".code-workspace",
 			"path": "../../../../Documents/GitHub/cloud-infrastructure/.vscode/"
+		},
+		{
+			"path": "../../../../Boneal Incorporated"
+		},
+		{
+			"path": "../../../../OneDrive - Boneal Incorporated"
 		}
 	],
 	"settings": {
