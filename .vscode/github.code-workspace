@@ -15,22 +15,24 @@
 	},
 	"folders": [
 		{
-			"name": "GitHub",
+			"name": "GitHub (Repos)",
 			"path": "../.."
 		},
 		{
-			"name": "Desktop"
+			"name": "~ desktop",
 			"path": "../../../../Desktop"
 		},
 		{
-			"name": ".code-workspace",
-			"path": "../../../../Documents/GitHub/cloud-infrastructure/.vscode/"
+			"name": "~ oneDrive",
+			"path": "../../../../OneDrive - Boneal Incorporated"
 		},
 		{
+			"name": "~ sharepoints",
 			"path": "../../../../Boneal Incorporated"
 		},
 		{
-			"path": "../../../../OneDrive - Boneal Incorporated"
+			"name": "~ workspace",
+			"path": "../../../../Documents/GitHub/cloud-infrastructure/.vscode/"
 		}
 	],
 	"settings": {
