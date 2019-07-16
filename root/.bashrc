@@ -57,8 +57,7 @@ if [ -x /usr/bin/dircolors ]; then
 	alias egrep='egrep --color=auto'
 fi
 
-# colored GCC warnings and errors
-export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'; # colored GCC warnings and errors
 
 # some more ls aliases
 alias ll='ls -alF'
@@ -98,11 +97,10 @@ bash_prompt_command() {
 	pwdmaxlen=$(( ( pwdmaxlen < ${#dir} ) ? ${#dir} : pwdmaxlen ))
 	NEW_PWD=${PWD/#$HOME/\~}
 	local pwdoffset=$(( ${#NEW_PWD} - pwdmaxlen ))
-	if [ ${pwdoffset} -gt "0" ]
-	then
+	if [ ${pwdoffset} -gt "0" ]; then
 			NEW_PWD=${NEW_PWD:$pwdoffset:$pwdmaxlen}
 			NEW_PWD=${trunc_symbol}/${NEW_PWD#*/}
-	fi
+	fi;
 }
 
 bash_prompt() {
@@ -159,5 +157,3 @@ bash_prompt() {
 
 # init it by setting PROMPT_COMMAND
 PROMPT_COMMAND=bash_prompt_command; bash_prompt; unset bash_prompt;
-
-if [ -n "${HOME}" ]; then cd "${HOME}"; fi;
