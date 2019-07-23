@@ -22,27 +22,71 @@ if [ "$(id -un)" != "root" ]; then
 	exit 1;
 else
 	# ------------------------------------------------------------
-	#
-	#  Linux - Update Bin-commands from SFTP-dropped files
-	#
-	SUDO_USER_HOMEDIR="$(getent passwd ${SUDO_USER} | cut --delimiter=: --fields=6)";
+	
+	# Make sure required runtime(s) are installed
 	if [ -z "$(which dos2unix)" ]; then
 		apt-get-update -y; apt-get install -y dos2unix;
 	fi;
-	echo "Updating from \"${SUDO_USER_HOMEDIR}/local\"";
-	if [ -d "${SUDO_USER_HOMEDIR}/local/sbin/" ]; then
-	sudo mv ${SUDO_USER_HOMEDIR}/local/bin/* /usr/local/bin/.;
-	fi;
-	sudo chown "root:root" /usr/local/bin/*;
-	sudo chmod 0755 /usr/local/bin/*;
-	sudo dos2unix /usr/local/bin/*;
-	if [ -d "${SUDO_USER_HOMEDIR}/local/sbin/" ]; then
-	sudo mv ${SUDO_USER_HOMEDIR}/local/sbin/* /usr/local/sbin/.;
-	fi;
-	sudo chown "root:root" /usr/local/sbin/*;
-	sudo chmod 0755 /usr/local/sbin/*;
-	sudo dos2unix /usr/local/sbin/*;
+	
+	SOURCE_DIR="";
 
-	# ------------------------------------------------------------
+	# Detect & handle WSL instance(s)
+	WIN32_USERNAME=$(wsl_get_windows_username);
+	if [ -n "${WIN32_USERNAME}" ]; then
+		#  Windows OS running WSL (Windows Subsystem for Linux) - Locate source directory from amongst Win32-Host-User's files
+		WIN32_HOMEDIR=$(find /mnt/*/Users/${WIN32_USERNAME} -mindepth 0 -maxdepth 0 -type d);
+		WIN32_USR_LOCAL=$(find ${WIN32_HOMEDIR}/Documents -maxdepth 10 -name 'local' -type d | grep '/cloud-infrastructure/usr/local');
+		if [ ! -n "${WIN32_USR_LOCAL}" ]; then
+			echo "";
+			echo "Unable to locate directory matching 'cloud-infrastructure/usr/local' within win32-user's documents @ '${WIN32_USERNAME}'";
+			exit 1;
+		else
+			SOURCE_DIR="$(dirname ${WIN32_USR_LOCAL})";
+		fi;
+
+	else
+		#  Linux OS - Locate source directory from amongst Non-Sudo User's files
+		SOURCE_DIR="$(getent passwd ${SUDO_USER} | cut --delimiter=: --fields=6)";
+
+	fi;
+
+	if [ ! -d "${SOURCE_DIR}/local/bin/" ] || [ ! -d "${SOURCE_DIR}/local/sbin/" ]; then
+
+		# Error-out if any required source directories are missing
+
+		if [ ! -d "${SOURCE_DIR}/local/bin/" ]; then
+			echo "";
+			echo "Error - Directory not-found: [ ${SOURCE_DIR}/local/bin/ ]";
+		fi;
+		if [ ! -d "${SOURCE_DIR}/local/sbin/" ]; then
+			echo "";
+			echo "Error - Directory not-found: [ ${SOURCE_DIR}/local/sbin/ ]";
+		fi;
+		exit 1;
+
+	else
+
+		# Required source directories exist - Update local runtimes from them
+
+		echo "";
+		echo "Copying files from '${SOURCE_DIR}/local/bin/*' to '/usr/local/bin/.' ...";
+		sudo cp --verbose --force ${SOURCE_DIR}/local/bin/* /usr/local/bin/.;
+		sudo chown "root:root" /usr/local/bin/*;
+		sudo chmod 0755 /usr/local/bin/*;
+		sudo dos2unix /usr/local/bin/*;
+
+		echo "";
+		echo "Copying files from '${SOURCE_DIR}/local/sbin/*' to '/usr/local/sbin/.' ...";
+		sudo cp --verbose --force ${SOURCE_DIR}/local/sbin/* /usr/local/sbin/.;
+		sudo chown "root:root" /usr/local/sbin/*;
+		sudo chmod 0755 /usr/local/sbin/*;
+		sudo dos2unix /usr/local/sbin/*;
+
+		echo "";
+		echo "Finished updating from source '${SOURCE_DIR}/local/*bin'";
+		echo "";
+		exit 0;
+
+	fi;
 
 fi;
