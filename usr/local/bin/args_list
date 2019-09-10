@@ -1,0 +1,24 @@
+#!/bin/bash
+#
+# LOCAL_BIN="/usr/local/bin/args_list" && echo "" > "${LOCAL_BIN}" && vi "${LOCAL_BIN}" && chmod 0755 "${LOCAL_BIN}";
+#
+# ------------------------------------------------------------
+
+# Count the number of inline arguments, then list each of them (newline-delimited)
+
+ARGS=("$@");
+COUNT_ARGS=${#ARGS[@]};
+echo "COUNT_ARGS = ${COUNT_ARGS}";
+for (( i=0;i<$COUNT_ARGS;i++ )); do
+	echo "\$$((${i}+1)) = "${ARGS[${i}]}$(test $((${i}+1)) -eq 1 && echo " ←-- FIRST ARG";)$(test $((${i}+1)) -eq ${COUNT_ARGS} && echo " ←-- LAST ARG";);
+done;
+
+
+
+# ------------------------------------------------------------
+#
+#	Citation(s)
+#
+#		linuxconfig.org  |  "How do I print all arguments submitted on a command line from a bash script?"  |  https://linuxconfig.org/how-do-i-print-all-arguments-submitted-on-a-command-line-from-a-bash-script
+#
+# ------------------------------------------------------------

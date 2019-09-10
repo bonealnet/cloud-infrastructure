@@ -2,6 +2,9 @@
 #
 # LOCAL_SBIN="/usr/local/sbin/sync_cloud_infrastructure" && echo "" > "${LOCAL_SBIN}" && vi "${LOCAL_SBIN}" && chmod 0755 "${LOCAL_SBIN}";
 #
+# SYNC 1-LINER:
+#		https://github.com/mcavallo-git/cloud-infrastructure/blob/master/README.md
+#
 # ------------------------------------------------------------
 #
 # Log all shell output & error output to logfile
@@ -21,6 +24,56 @@ if [ "$(id -un)" != "root" ]; then
 	echo "$(date +'%Y-%m-%d %H:%M:%S') | Error: Script must run as user \"root\" or via \"sudo\" command";
 	exit 1;
 else
+	# ------------------------------------------------------------
+	# Parse inline arguments (passed to current script)
+	#
+
+	ARGS=("$@");
+	COUNT_ARGS=${#ARGS[@]};
+
+	ARGS_CRONJOB="";
+	HELP_CRONJOB="Setup sync cron-job(s) via \"--cron sync\". Setup jenkins cron-job(s) via \"--cron jenkins\". To remove associated cron-jobs, use \"--cron remove\"";
+	RESTART_SERVICE_CRON=0;
+
+	# Walk through any inline-arguments passed to this function
+	for (( i=0;i<$COUNT_ARGS;i++ )); do
+
+		EACH_ARG=${ARGS[${i}]};
+
+		# Check if this is the last inline-argument or if there are more to follow
+		if [ $((${i}+1)) -eq ${COUNT_ARGS} ]; then # if this is the last argument
+			NEXT_ARG="";
+		else
+			NEXT_ARG=${ARGS[$((${i}+1))]};
+			if [[ "${NEXT_ARG}" == "--"* ]]; then # Do not allow inline-arguments starting with "--..." to use the next bash-argument as an associated value if it, also, starts with "--..."
+				NEXT_ARG="";
+			fi;
+		fi;
+
+		if [ -n "${EACH_ARG}" ]; then # Parse each non-empty inline argument
+
+			# Parse cronjob calls
+			if [ "${EACH_ARG}" == "--cron" ]; then
+				if [ -z "${ARGS_CRONJOB}" ] && [ "${NEXT_ARG}" == "sync" ]; then # --cron sync
+					ARGS_CRONJOB="SYNC";
+				elif [ -z "${ARGS_CRONJOB}" ] && [ "${NEXT_ARG}" == "jenkins" ]; then # --cron remove
+					ARGS_CRONJOB="JENKINS";
+				elif [ -z "${ARGS_CRONJOB}" ] && [ "${NEXT_ARG}" == "remove" ]; then # --cron remove
+					ARGS_CRONJOB="REMOVE";
+				else
+					if [ -n "${ARGS_CRONJOB}" ]; then
+						echo "$(date +'%Y-%m-%d %H:%M:%S') ⛔ Invalid inline-argument:   Multiple instances of \"--cron\" detected";
+					else
+						echo "$(date +'%Y-%m-%d %H:%M:%S') ⛔ Invalid inline-argument:   ${EACH_ARG} ${NEXT_ARG}";
+					fi;
+					echo "$(date +'%Y-%m-%d %H:%M:%S') ⛔ ${HELP_CRONJOB}";
+					exit 1;
+				fi;
+			fi;
+
+		fi;
+	done;
+
 	# ------------------------------------------------------------
 	
 	GIT_SOURCE_REPO_URL="https://github.com/mcavallo-git/cloud-infrastructure.git";
@@ -57,6 +110,7 @@ else
 		apt-get-update -y; apt-get install -y dos2unix;
 	fi;
 	
+	WIN32_HOMEDIR="";
 	DIR_REPO_BASE="";
 
 	# Detect & handle WSL instance(s)
@@ -65,7 +119,8 @@ else
 		WIN32_USERNAME=$(wsl_get_windows_username);
 		WIN32_USER_ERRORS="$?";
 	fi;
-	if [ -n "${WIN32_USER_ERRORS}" ] && [ "${WIN32_USER_ERRORS}" == "0" ]; then
+	
+	if [ -n "${WIN32_USERNAME}" ] && [ -n "${WIN32_USER_ERRORS}" ] && [ "${WIN32_USER_ERRORS}" == "0" ]; then
 		#  Windows OS running WSL (Windows Subsystem for Linux) - Locate source directory from amongst Win32-Host-User's files
 		WIN32_HOMEDIR=$(find /mnt/*/Users/${WIN32_USERNAME} -mindepth 0 -maxdepth 0 -type d);
 		WIN32_USR_LOCAL=$(find ${WIN32_HOMEDIR}/Documents -maxdepth 10 -name 'local' -type d | grep '/cloud-infrastructure/usr/local');
@@ -77,15 +132,15 @@ else
 			DIR_REPO_USR="$(dirname ${WIN32_USR_LOCAL})";
 			DIR_REPO_BASE="$(dirname ${DIR_REPO_USR})";
 		fi;
+	fi;
 
-	else
-
+	if [ -z "${WIN32_HOMEDIR}" ]; then
+		# If Windows/WSL check(s) failed (or were skipped), push forwards by checking for required Linux filepath(s)
 		WHOAMI_HOME_DIR="$(getent passwd $(id -un) | cut --delimiter=: --fields=6)";
 		WHOAMI_USR_LOCAL=$(find ${WHOAMI_HOME_DIR} -maxdepth 10 -name 'local' -type d | grep '/cloud-infrastructure/usr/local');
 		DIR_REPO_USR="$(dirname ${WHOAMI_USR_LOCAL})";
 		DIR_REPO_BASE="$(dirname ${DIR_REPO_USR})";
 		SOURCE_DIR_ERRS=$?;
-
 		if [ "${SOURCE_DIR_ERRS}" != "0" ] && [ -n "${SUDO_USER}" ]; then
 			#  Linux OS - Locate source directory from amongst Non-Sudo User's files
 			SUDOER_HOME_DIR="$(getent passwd ${SUDO_USER} | cut --delimiter=: --fields=6)";
@@ -94,7 +149,6 @@ else
 			DIR_REPO_BASE="$(dirname ${DIR_REPO_USR})";
 			SOURCE_DIR_ERRS=$?;
 		fi;
-	
 	fi;
 
 	if [ -z "${DIR_REPO_BASE}" ]; then
@@ -118,37 +172,119 @@ else
 		fi;
 
 	else
-		# Required source directories exist - Update local runtimes from them
+		# Required source directory/directories exist - Sync them to local workstation/server
 		EXIT_CODE=0;
 
 		# ------------------------------------------------------------
-		# Sync [ /usr/local/bin ] files (e.g. non-admin commands)
+		# /usr/local/bin
 		# ------------------------------------------------------------
-		DESTINATION_DIR="/usr/local/bin";
-		SOURCE_DIR="${DIR_REPO_BASE}/usr/local/bin";
-		echo -e "\nUpdating \"${DESTINATION_DIR}\"...\n";
-		rsync --archive --inplace --checksum --verbose --chown="root:root" --chmod=D0755,F755 "${SOURCE_DIR}/" "${DESTINATION_DIR}"; # Perform the file-sync
-		find "${DESTINATION_DIR}" -type d -exec chmod 0755 "{}" ";"; # Ensure directory permissions are set as-intended
-		find "${DESTINATION_DIR}" -type f -exec chmod 755 "{}" ";"; # Ensure file permissions are set as-intended
-		dos2unix --quiet /usr/local/bin/*; # Convert any CRLF files to force line-endings to be LF (only)
-
-		# ------------------------------------------------------------
-		# Sync [ /usr/local/sbin ] files (e.g. admin-only commands)
-		# ------------------------------------------------------------
-		DESTINATION_DIR="/usr/local/sbin";
-		SOURCE_DIR="${DIR_REPO_BASE}/usr/local/sbin";
-		echo -e "\nUpdating \"${DESTINATION_DIR}\"...\n";
-		rsync --archive --inplace --checksum --verbose --chown="root:root" --chmod="D0755,F0755" "${SOURCE_DIR}/" "${DESTINATION_DIR}"; # Perform the file-sync
-		find "${DESTINATION_DIR}" -type d -exec chmod 0755 "{}" ";"; # Ensure directory permissions are set as-intended
-		find "${DESTINATION_DIR}" -type f -exec chmod 755 "{}" ";"; # Ensure file permissions are set as-intended
-		dos2unix --quiet /usr/local/sbin/*; # Convert any CRLF files to force line-endings to be LF (only)
-
-		echo "";
-		echo "Local bin & sbin are in-sync & up-to-date";
+		DESTINATION_PATH="/usr/local/bin";
+		SOURCE_PATH="${DIR_REPO_BASE}${DESTINATION_PATH}"$(test -d "${DIR_REPO_BASE}${DESTINATION_PATH}" && echo "/";);
+		FILE_PERMS="0755"; DIR_PERMS="0755";
+		echo -e "\nUpdating \"${DESTINATION_PATH}\"...\n";
+		rsync --archive --inplace --checksum --verbose --chown="root:root" --chmod="D${DIR_PERMS},F${FILE_PERMS}" "${SOURCE_PATH}" "${DESTINATION_PATH}"; # Perform dir-sync
+		if [ "${FILE_PERMS}" == "${DIR_PERMS}" ]; then chmod -R "${FILE_PERMS}" "${DESTINATION_PATH}"; fi; # Ensure permissions are set as-intended
+		dos2unix --quiet "${DESTINATION_PATH}"/*; # Convert any CRLF files to force line-endings to be LF (only)
+		echo "Sync complete:  ${DESTINATION_PATH}";
 		echo "";
 
+
 		# ------------------------------------------------------------
-		# Sync [ /home/USER/* ] files (e.g. bash-config & terminal-formatting files)
+		# /usr/local/sbin
+		# ------------------------------------------------------------
+		DESTINATION_PATH="/usr/local/sbin";
+		SOURCE_PATH="${DIR_REPO_BASE}${DESTINATION_PATH}"$(test -d "${DIR_REPO_BASE}${DESTINATION_PATH}" && echo "/";);
+		FILE_PERMS="0755"; DIR_PERMS="0755";
+		echo -e "\nUpdating \"${DESTINATION_PATH}\"...\n";
+		rsync --archive --inplace --checksum --verbose --chown="root:root" --chmod="D${DIR_PERMS},F${FILE_PERMS}" "${SOURCE_PATH}" "${DESTINATION_PATH}"; # Perform dir-sync
+		if [ "${FILE_PERMS}" == "${DIR_PERMS}" ]; then chmod -R "${FILE_PERMS}" "${DESTINATION_PATH}"; fi; # Ensure permissions are set as-intended
+		dos2unix --quiet "${DESTINATION_PATH}"/*; # Convert any CRLF files to force line-endings to be LF (only)
+		echo "Sync complete:  ${DESTINATION_PATH}";
+		echo "";
+
+
+		# ------------------------------------------------------------
+		# /etc/profile.d/bash_history_logging.sh
+		# ------------------------------------------------------------
+		DESTINATION_PATH="/etc/profile.d/bash_history_logging.sh";
+		SOURCE_PATH="${DIR_REPO_BASE}${DESTINATION_PATH}"$(test -d "${DIR_REPO_BASE}${DESTINATION_PATH}" && echo "/";);
+		FILE_PERMS="0644"; DIR_PERMS="0644";
+		echo -e "\nUpdating \"${DESTINATION_PATH}\"...\n";
+		rsync --archive --inplace --checksum --verbose --chown="root:root" --chmod="D${DIR_PERMS},F${FILE_PERMS}" "${SOURCE_PATH}" "${DESTINATION_PATH}"; # Perform file-sync
+		if [ "${FILE_PERMS}" == "${DIR_PERMS}" ]; then chmod -R "${FILE_PERMS}" "${DESTINATION_PATH}"; fi; # Ensure permissions are set as-intended
+		dos2unix --quiet "${DESTINATION_PATH}"/*; # Convert any CRLF files to force line-endings to be LF (only)
+		echo "Sync complete:  ${DESTINATION_PATH}";
+		echo "";
+
+
+		# ------------------------------------------------------------
+		# /etc/cron.d/...
+		# ------------------------------------------------------------
+		if [ "${ARGS_CRONJOB}" == "SYNC" ] || [ "${ARGS_CRONJOB}" == "JENKINS" ] || [ "${ARGS_CRONJOB}" == "REMOVE" ]; then
+			RESTART_SERVICE_CRON=1;
+			if [ "${ARGS_CRONJOB}" == "SYNC" ]; then
+				# ------------------------------------------------------------
+				# --cron jenkins   -->   /etc/cron.d/CRON_sync_cloud_infrastructure
+				# ------------------------------------------------------------
+				DESTINATION_PATH="/etc/cron.d/CRON_sync_cloud_infrastructure";
+				SOURCE_PATH="${DIR_REPO_BASE}${DESTINATION_PATH}"$(test -d "${DIR_REPO_BASE}${DESTINATION_PATH}" && echo "/";);
+				FILE_PERMS="0644"; DIR_PERMS="0644";
+				echo -e "\nUpdating \"${DESTINATION_PATH}\"...\n";
+				rsync --archive --inplace --checksum --verbose --chown="root:root" --chmod="D${DIR_PERMS},F${FILE_PERMS}" "${SOURCE_PATH}" "${DESTINATION_PATH}"; # Perform file-sync
+				if [ "${FILE_PERMS}" == "${DIR_PERMS}" ]; then chmod -R "${FILE_PERMS}" "${DESTINATION_PATH}"; fi; # Ensure permissions are set as-intended
+				dos2unix --quiet "${DESTINATION_PATH}"/*; # Convert any CRLF files to force line-endings to be LF (only)
+				echo "Sync complete:  ${DESTINATION_PATH}";
+			elif [ "${ARGS_CRONJOB}" == "JENKINS" ]; then
+				# ------------------------------------------------------------
+				# --cron jenkins   -->   /etc/cron.d/CRON_jenkins_log_cleanup
+				# ------------------------------------------------------------
+				DESTINATION_PATH="/etc/cron.d/CRON_jenkins_log_cleanup";
+				SOURCE_PATH="${DIR_REPO_BASE}${DESTINATION_PATH}"$(test -d "${DIR_REPO_BASE}${DESTINATION_PATH}" && echo "/";);
+				FILE_PERMS="0644"; DIR_PERMS="0644";
+				echo -e "\nUpdating \"${DESTINATION_PATH}\"...\n";
+				rsync --archive --inplace --checksum --verbose --chown="root:root" --chmod="D${DIR_PERMS},F${FILE_PERMS}" "${SOURCE_PATH}" "${DESTINATION_PATH}"; # Perform file-sync
+				if [ "${FILE_PERMS}" == "${DIR_PERMS}" ]; then chmod -R "${FILE_PERMS}" "${DESTINATION_PATH}"; fi; # Ensure permissions are set as-intended
+				dos2unix --quiet "${DESTINATION_PATH}"/*; # Convert any CRLF files to force line-endings to be LF (only)
+				echo "Sync complete:  ${DESTINATION_PATH}";
+				# ------------------------------------------------------------
+				# --cron sync   -->    /etc/cron.d/CRON_jenkins_warfile_update
+				# ------------------------------------------------------------
+				DESTINATION_PATH="/etc/cron.d/CRON_jenkins_warfile_update";
+				SOURCE_PATH="${DIR_REPO_BASE}${DESTINATION_PATH}"$(test -d "${DIR_REPO_BASE}${DESTINATION_PATH}" && echo "/";);
+				FILE_PERMS="0644"; DIR_PERMS="0644";
+				echo -e "\nUpdating \"${DESTINATION_PATH}\"...\n";
+				rsync --archive --inplace --checksum --verbose --chown="root:root" --chmod="D${DIR_PERMS},F${FILE_PERMS}" "${SOURCE_PATH}" "${DESTINATION_PATH}"; # Perform file-sync
+				if [ "${FILE_PERMS}" == "${DIR_PERMS}" ]; then chmod -R "${FILE_PERMS}" "${DESTINATION_PATH}"; fi; # Ensure permissions are set as-intended
+				dos2unix --quiet "${DESTINATION_PATH}"/*; # Convert any CRLF files to force line-endings to be LF (only)
+				echo "Sync complete:  ${DESTINATION_PATH}";
+			elif [ "${ARGS_CRONJOB}" == "REMOVE" ]; then
+				# ------------------------------------------------------------
+				# --cron remove   -->    /etc/cron.d/CRON_... (REMOVE)
+				# ------------------------------------------------------------
+				DESTINATION_PATH="/etc/cron.d/CRON_sync_cloud_infrastructure";
+				echo -e "\nRemoving \"${DESTINATION_PATH}\"...\n";
+				rm -fv "${DESTINATION_PATH}";
+				DESTINATION_PATH="/etc/cron.d/CRON_jenkins_log_cleanup";
+				echo -e "\nRemoving \"${DESTINATION_PATH}\"...\n";
+				rm -fv "${DESTINATION_PATH}";
+				DESTINATION_PATH="/etc/cron.d/CRON_jenkins_warfile_update";
+				echo -e "\nRemoving \"${DESTINATION_PATH}\"...\n";
+				rm -fv "${DESTINATION_PATH}";
+			fi;
+			echo "";
+		fi;
+
+
+		# ------------------------------------------------------------
+		# /etc/letsencrypt/renewal-hooks/deploy/reload_nginx
+		# ------------------------------------------------------------
+		if [ -d "/etc/letsencrypt/renewal-hooks/deploy" ] && [ ! -e "/etc/letsencrypt/renewal-hooks/deploy/reload_nginx" ] && [ -f "/usr/local/sbin/reload_nginx" ]; then
+			ln --symbolic --verbose --force "/usr/local/sbin/reload_nginx" "/etc/letsencrypt/renewal-hooks/deploy/reload_nginx";
+		fi;
+
+
+		# ------------------------------------------------------------
+		# Configurations, User-Home Directories
 		# ------------------------------------------------------------
 
 		# Get list of files to Copy into Home-Dirs
@@ -206,8 +342,17 @@ else
 		# Remove old/renamed scripts (if found to exist)
 		# ------------------------------------------------------------
 		TO_DEL="/usr/local/sbin/jenkins_war_update"; if [ -f "${TO_DEL}" ] && [ ! -h "${TO_DEL}" ]; then rm -f "${TO_DEL}"; fi;
+		TO_DEL="/usr/local/sbin/install_devops_packages"; if [ -f "${TO_DEL}" ] && [ ! -h "${TO_DEL}" ]; then rm -f "${TO_DEL}"; fi;
+		TO_DEL="/usr/local/sbin/install_utilities"; if [ -f "${TO_DEL}" ] && [ ! -h "${TO_DEL}" ]; then rm -f "${TO_DEL}"; fi;
+		TO_DEL="/usr/local/sbin/update_bins_from_sftp"; if [ -f "${TO_DEL}" ] && [ ! -h "${TO_DEL}" ]; then rm -f "${TO_DEL}"; fi;
 
-
+		# ------------------------------------------------------------
+		# Restart necessary service(s)
+		# ------------------------------------------------------------
+		if [ ${RESTART_SERVICE_CRON} -eq 1 ]; then
+			service cron restart;
+			service cron status;
+		fi;
 	fi;
 
 	exit ${EXIT_CODE};
