@@ -68,7 +68,7 @@ else
 		echo "$(date +'%D  %r')   JENKINS_VERSION_SYSTEM = \"${JENKINS_VERSION_SYSTEM}\"";
 		echo "$(date +'%D  %r')   JENKINS_VERSION_DOWNLOADED = \"${JENKINS_VERSION_DOWNLOADED}\"";
 
-    #if [ "${JENKINS_VERSION_DOWNLOADED}" == "2.185" ]; then
+    # if [ "${JENKINS_VERSION_DOWNLOADED}" == "2.185" ]; then					// Previous bad version
     if [ "${JENKINS_VERSION_DOWNLOADED}" == "2.266" ]; then
 			# Skip buggy Jenkins runtime(s)
 			echo "";
