@@ -3,7 +3,7 @@
 # LOCAL_SBIN="/usr/local/sbin/sync_cloud_infrastructure" && echo "" > "${LOCAL_SBIN}" && vi "${LOCAL_SBIN}" && chmod 0755 "${LOCAL_SBIN}";
 #
 # SYNC 1-LINER:
-#		https://github.com/mcavallo-git/cloud-infrastructure/blob/master/README.md
+#		https://github.com/bonealnet/cloud-infrastructure/blob/master/README.md
 #
 # ------------------------------------------------------------
 #
@@ -19,7 +19,7 @@ exec 2>&1;
 if [ 0 -eq 1 ]; then
 
 #####  Sync 1-liner  →  Pull the raw version of the file directly out of GitHub
-REPO_FILE="https://raw.githubusercontent.com/mcavallo-git/cloud-infrastructure/master/usr/local/sbin/sync_cloud_infrastructure" && \
+REPO_FILE="https://raw.githubusercontent.com/bonealnet/cloud-infrastructure/master/usr/local/sbin/sync_cloud_infrastructure" && \
 LOCAL_FILE="/usr/local/bin/$(basename ${REPO_FILE})" && \
 sudo wget "${REPO_FILE}" --output-document="${LOCAL_FILE}" && \
 sudo chmod 0755 "${LOCAL_FILE}" && \
@@ -87,7 +87,7 @@ else
 
 	# ------------------------------------------------------------
 	
-	GIT_SOURCE_REPO_URL="https://github.com/mcavallo-git/cloud-infrastructure.git";
+	GIT_SOURCE_REPO_URL="https://github.com/bonealnet/cloud-infrastructure.git";
 
 	# Ensure the (GitHub) Repos directory exists, locally
 	LOCAL_PARENT_PATH="${HOME}/Documents/GitHub";
