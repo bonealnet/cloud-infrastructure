@@ -69,7 +69,7 @@ else
 		echo "$(date +'%D  %r')   JENKINS_VERSION_DOWNLOADED = \"${JENKINS_VERSION_DOWNLOADED}\"";
 
     # if [ "${JENKINS_VERSION_DOWNLOADED}" == "2.185" ]; then					// Previous bad version 2.185, 2.266, 2.267
-    if [ "${JENKINS_VERSION_DOWNLOADED}" == "2.266" ]; then
+    if [ "${JENKINS_VERSION_DOWNLOADED}" == "2.267" ]; then
 			# Skip buggy Jenkins runtime(s)
 			echo "";
 			echo "$(date +'%D  %r')   NOTICE: Blocking downloaded Jenkins runtime";
