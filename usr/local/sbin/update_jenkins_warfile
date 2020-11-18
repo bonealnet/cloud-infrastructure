@@ -36,7 +36,8 @@ else
 	if [ -f "${WGET_LOGFILE}" ]; then
 		rm -f "${WGET_LOGFILE}";
 	fi;
-	DOWNLOAD_URL="https://updates.jenkins-ci.org/latest/jenkins.war";
+	# DOWNLOAD_URL="https://updates.jenkins-ci.org/latest/jenkins.war";						Versions Releases weekly
+	DOWNLOAD_URL="https://get.jenkins.io/war-stable/latest/jenkins.war";					# Long Term Support (LTS) releases
 	wget --quiet --server-response --output-document="${JENKINS_RUNTIME_DOWNLOADED}" --output-file="${WGET_LOGFILE}" "${DOWNLOAD_URL}";
 
 	# Log the relevant info from the version which was just downloaded
@@ -68,8 +69,7 @@ else
 		echo "$(date +'%D  %r')   JENKINS_VERSION_SYSTEM = \"${JENKINS_VERSION_SYSTEM}\"";
 		echo "$(date +'%D  %r')   JENKINS_VERSION_DOWNLOADED = \"${JENKINS_VERSION_DOWNLOADED}\"";
 
-    # if [ "${JENKINS_VERSION_DOWNLOADED}" == "2.185" ]; then					// Previous bad version 2.185, 2.266, 2.267
-    if [ "${JENKINS_VERSION_DOWNLOADED}" == "2.267" ]; then
+    if [ "${JENKINS_VERSION_DOWNLOADED}" == "2.185" ]; then					
 			# Skip buggy Jenkins runtime(s)
 			echo "";
 			echo "$(date +'%D  %r')   NOTICE: Blocking downloaded Jenkins runtime";
