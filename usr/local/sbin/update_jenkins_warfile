@@ -36,8 +36,8 @@ else
 	if [ -f "${WGET_LOGFILE}" ]; then
 		rm -f "${WGET_LOGFILE}";
 	fi;
-	# DOWNLOAD_URL="https://updates.jenkins-ci.org/latest/jenkins.war";						Versions Releases weekly
-	DOWNLOAD_URL="https://get.jenkins.io/war-stable/latest/jenkins.war";					# Long Term Support (LTS) releases
+	DOWNLOAD_URL="https://updates.jenkins-ci.org/latest/jenkins.war";						Versions Releases weekly
+	# DOWNLOAD_URL="https://get.jenkins.io/war-stable/latest/jenkins.war";					# Long Term Support (LTS) releases
 	wget --quiet --server-response --output-document="${JENKINS_RUNTIME_DOWNLOADED}" --output-file="${WGET_LOGFILE}" "${DOWNLOAD_URL}";
 
 	# Log the relevant info from the version which was just downloaded
