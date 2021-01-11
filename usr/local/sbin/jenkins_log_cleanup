@@ -84,6 +84,9 @@ else
 		-mtime +${MAX_AGE_DAYS} \
 		-exec rm -rf -- '{}' \;
 
+	find /usr/share/jenkins -name 'jenkins.war.v2.*' -mtime +30 -type f -exec rm -fv {} \;
+
+	find /usr/share/jenkins -name 'jenkins.war.20*' -mtime +30 -type f -exec rm -fv {} \;
 
 	# # NGINX - Reload
 	# echo -e "\n\n$(date +'%D  %r') Calling [ systemctl reload nginx; ]...";
