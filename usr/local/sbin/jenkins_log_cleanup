@@ -88,6 +88,10 @@ else
 
 	find /usr/share/jenkins -name 'jenkins.war.20*' -mtime +30 -type f -exec rm -fv {} \;
 
+	find /root -name 'jenkins.export_plugins*' -mtime +10 -type f -exec rm -fv {} \;
+
+	find /root -name 'jenkins.export_config*' -mtime +10 -type f -exec rm -fv {} \;
+
 	# # NGINX - Reload
 	# echo -e "\n\n$(date +'%D  %r') Calling [ systemctl reload nginx; ]...";
 	# systemctl reload nginx;
