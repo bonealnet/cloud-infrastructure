@@ -3,4 +3,4 @@
 #
 
 ### [ SYNC ] Sync cloud infrastructure repo @ https://github.com/bonealnet/cloud-infrastructure/blob/master/README.md
-* * * * * root test -x "/usr/local/sbin/sync_cloud_infrastructure" && "/usr/local/sbin/sync_cloud_infrastructure";
+*/10 * * * * root test -x "/usr/local/sbin/sync_cloud_infrastructure" && "/usr/local/sbin/sync_cloud_infrastructure";
